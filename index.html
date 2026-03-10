@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Road to 25 — SalesTank Bingo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+  .page { max-width: 700px; margin: 0 auto; padding: 16px 16px 40px; }
+  .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6366f1 100%); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(99,102,241,0.3); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .header h1 { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .agent-select { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; }
+  .agent-select option { background: #1e1b4b; color: #fff; }
+  .score-badge { background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; font-size: 14px; padding: 6px 14px; border-radius: 20px; }
+  .player-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; }
+  .player-name { font-size: 13px; color: #94a3b8; }
+  .player-name strong { color: #e2e8f0; }
+  .progress-wrap { width: 120px; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .bingo-banner { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; font-size: 20px; font-weight: 800; text-align: center; padding: 14px; border-radius: 10px; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; animation: pulse 2s ease-in-out infinite; box-shadow: 0 4px 20px rgba(34,197,94,0.4); }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.01)} }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #2d3748; border-radius: 10px; padding: 6px 5px; text-align: center; background: #1a1d2e; position: relative; transition: all 0.2s; }
+  .cell-emoji { font-size: 20px; line-height: 1; margin-bottom: 3px; }
+  .cell-label { font-size: 9px; line-height: 1.2; color: #cbd5e1; word-break: break-word; max-height: 3em; overflow: hidden; }
+  .diff-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
+  .status-icon { position: absolute; top: 3px; left: 4px; font-size: 11px; font-weight: 700; }
+  .cell-open { border-color: rgba(99,102,241,0.3); }
+  .cell-verified { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+  .cell-verified .status-icon { color: #22c55e; }
+  .cell-pending { border-color: #eab308; background: rgba(234,179,8,0.08); }
+  .cell-pending .status-icon { color: #eab308; }
+  .cell-flagged { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+  .cell-flagged .status-icon { color: #ef4444; }
+  .cell-free { border-color: #a78bfa; background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.12)); }
+  .cell-free .cell-label { font-weight: 700; color: #a78bfa; }
+  .cell-free .status-icon { color: #a78bfa; }
+  .cell-line { box-shadow: 0 0 0 3px #22c55e, 0 0 16px rgba(34,197,94,0.4); z-index: 1; }
+  .legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #94a3b8; margin-top: 14px; padding: 0 4px; }
+  .legend-title { font-weight: 600; color: #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .empty { text-align: center; padding: 60px 20px; color: #64748b; }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .leaderboard { margin-top: 20px; background: #1a1d2e; border-radius: 10px; overflow: hidden; border: 1px solid #2d3748; }
+  .lb-header { padding: 12px 16px; font-weight: 700; font-size: 13px; border-bottom: 1px solid #2d3748; color: #e2e8f0; }
+  .lb-row { display: flex; align-items: center; padding: 8px 16px; border-bottom: 1px solid #1e293b; gap: 10px; font-size: 13px; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { width: 24px; font-weight: 700; color: #64748b; }
+  .lb-name { flex: 1; }
+  .lb-score { font-weight: 700; color: #6366f1; }
+  .lb-bingo { color: #22c55e; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .updated { text-align: center; font-size: 11px; color: #475569; margin-top: 16px; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+</style>
+</head>
+<body>
+<div class="page" id="app"></div>
+<script>
+const DATA = {"board":null,"agents":[]};
+const META = {
+  0:{e:'🎯',d:'hard'},1:{e:'🏠',d:'medium'},2:{e:'📇',d:'easy'},
+  3:{e:'⚡',d:'hard'},4:{e:'🔥',d:'medium'},5:{e:'🚗',d:'medium'},
+  6:{e:'⭐',d:'hard'},7:{e:'🌅',d:'medium'},8:{e:'🔑',d:'easy'},
+  9:{e:'📅',d:'medium'},10:{e:'🏁',d:'easy'},11:{e:'⏱️',d:'easy'},
+  12:{e:'🎖️',d:'free'},13:{e:'☂️',d:'hard'},14:{e:'📞',d:'medium'},
+  15:{e:'📈',d:'medium'},16:{e:'📱',d:'easy'},17:{e:'🤝',d:'medium'},
+  18:{e:'💡',d:'medium'},19:{e:'👥',d:'hard'},20:{e:'💰',d:'hard'},
+  21:{e:'🎯',d:'medium'},22:{e:'🔄',d:'hard'},23:{e:'📊',d:'easy'},
+  24:{e:'🏆',d:'hard'},
+};
+const DCOL = {easy:'#22c55e',medium:'#eab308',hard:'#ef4444',free:'#a78bfa'};
+let currentAgent = DATA.agents?.[0]?.name || null;
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function render() {
+  if (!DATA.board || !DATA.agents?.length) {
+    document.getElementById('app').innerHTML = '<div class="empty"><div class="icon">🎲</div><p>No active bingo board.</p></div>';
+    return;
+  }
+  const board = DATA.board;
+  const agent = DATA.agents.find(a => a.name === currentAgent) || DATA.agents[0];
+  const marked = agent.marked || {};
+  const total = agent.total || 0;
+  const hasBingo = agent.bingo;
+  const pct = Math.round((total / 25) * 100);
+
+  let h = '<div class="header"><div class="header-inner">' +
+    '<h1>🎲 ' + esc(board.name || 'Road to 25') + '</h1>' +
+    '<div style="display:flex;gap:8px;align-items:center;">' +
+    '<select class="agent-select" onchange="switchAgent(this.value)">';
+  for (const a of DATA.agents) {
+    h += '<option value="' + esc(a.name) + '"' + (a.name===currentAgent?' selected':'') + '>' + esc(a.name) + ' (' + a.total + '/25)</option>';
+  }
+  h += '</select><span class="score-badge">' + total + ' / 25</span></div></div></div>';
+
+  if (hasBingo) h += '<div class="bingo-banner">🎉 ' + esc(agent.name) + ' — BINGO! 🎉</div>';
+  if (board.winner && board.winner.agent !== agent.name) {
+    h += '<div class="bingo-banner" style="background:linear-gradient(135deg,#6366f1,#4f46e5);font-size:14px;">🏆 ' + esc(board.winner.agent) + ' got BINGO first!</div>';
+  }
+
+  h += '<div class="player-bar"><span class="player-name">Playing as: <strong>' + esc(agent.name) + '</strong></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:#64748b;">' + pct + '%</span>' +
+    '<div class="progress-wrap"><div class="progress-fill" style="width:' + pct + '%;background:' + (hasBingo?'#22c55e':'#6366f1') + ';"></div></div></div></div>';
+
+  h += '<div class="grid">';
+  for (let i = 0; i < 25; i++) {
+    const sq = board.squares.find(s => s.position === i);
+    const m = META[i] || {e:'',d:'easy'};
+    const mark = marked[String(i)];
+    const status = mark?.status || null;
+    const isFree = sq?.type === 'free';
+    const isOnLine = hasBingo && Array.isArray(hasBingo) && hasBingo.includes(i);
+    let cls = 'cell';
+    let icon = '';
+    if (isFree) { cls += ' cell-free'; icon = '<span class="status-icon">✓</span>'; }
+    else if (status === 'verified' || status === 'auto') { cls += ' cell-verified'; icon = '<span class="status-icon">✓</span>'; }
+    else if (status === 'pending') { cls += ' cell-pending'; icon = '<span class="status-icon">⏳</span>'; }
+    else if (status === 'flagged') { cls += ' cell-flagged'; icon = '<span class="status-icon">⚠</span>'; }
+    else { cls += ' cell-open'; }
+    if (isOnLine) cls += ' cell-line';
+    const dot = !isFree ? '<span class="diff-dot" style="background:' + (DCOL[m.d]||DCOL.easy) + '"></span>' : '';
+    h += '<div class="' + cls + '" title="' + esc(sq?.label||'') + '">' + icon + dot + '<span class="cell-emoji">' + m.e + '</span><span class="cell-label">' + esc(sq?.label||'') + '</span></div>';
+  }
+  h += '</div>';
+
+  h += '<div class="legend"><span class="legend-title">Difficulty:</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> Easy</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#eab308"></span> Medium</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span> Hard</span></div>' +
+    '<div class="legend" style="margin-top:6px;"><span class="legend-title">Status:</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#6366f1"></span> Open</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#eab308"></span> Pending</span>' +
+    '<span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> Verified</span></div>';
+
+  h += '<div class="leaderboard"><div class="lb-header">🏆 Leaderboard</div>';
+  const sorted = [...DATA.agents].sort((a, b) => {
+    if (a.bingo && !b.bingo) return -1;
+    if (!a.bingo && b.bingo) return 1;
+    return b.total - a.total;
+  });
+  sorted.forEach((a, idx) => {
+    const medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':(idx+1);
+    const active = a.name===currentAgent ? 'font-weight:700;color:#fff;' : '';
+    h += '<div class="lb-row" style="' + active + '"><span class="lb-rank">' + medal + '</span><span class="lb-name">' + esc(a.name) + '</span>' +
+      (a.bingo ? '<span class="lb-bingo">BINGO!</span>' : '') +
+      '<span class="lb-score">' + a.total + '/25</span></div>';
+  });
+  h += '</div>';
+  h += '<div class="updated">Last updated: Mar 10, 2:12 PM</div>';
+
+  document.getElementById('app').innerHTML = h;
+  if (hasBingo && !document.getElementById('confetti')) launchConfetti();
+}
+
+function switchAgent(name) { currentAgent = name; render(); }
+
+function launchConfetti() {
+  const c = document.createElement('canvas');
+  c.id = 'confetti'; document.body.appendChild(c);
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const colors = ['#6366f1','#8b5cf6','#22c55e','#eab308','#ef4444','#ec4899','#06b6d4'];
+  const p = Array.from({length:120}, () => ({
+    x:Math.random()*c.width, y:Math.random()*c.height-c.height,
+    w:Math.random()*8+3, h:Math.random()*5+2,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    vy:Math.random()*3+1.5, vx:Math.random()*2-1,
+    rot:Math.random()*Math.PI*2, vr:(Math.random()-0.5)*0.1, opacity:1,
+  }));
+  let f=0;
+  (function draw(){
+    ctx.clearRect(0,0,c.width,c.height); let alive=0;
+    for(const i of p){i.y+=i.vy;i.x+=i.vx;i.rot+=i.vr;
+      if(f>100)i.opacity=Math.max(0,i.opacity-0.012);
+      if(i.opacity<=0||i.y>c.height+20)continue; alive++;
+      ctx.save();ctx.translate(i.x,i.y);ctx.rotate(i.rot);
+      ctx.globalAlpha=i.opacity;ctx.fillStyle=i.color;
+      ctx.fillRect(-i.w/2,-i.h/2,i.w,i.h);ctx.restore();}
+    f++; if(alive>0)requestAnimationFrame(draw);else c.remove();
+  })();
+}
+
+render();
+</script>
+</body>
+</html>
