@@ -76,6 +76,21 @@
   .toast-err { background:#ef4444; color:#fff; }
   .toast-info { background:#6366f1; color:#fff; }
   @keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }
+  .chat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:400; align-items:flex-end; justify-content:center; }
+  .chat-overlay.active { display:flex; }
+  .chat-box { background:#1a1d2e; border:1px solid #2d3748; border-radius:14px 14px 0 0; padding:16px; width:100%; max-width:480px; max-height:70vh; display:flex; flex-direction:column; }
+  .chat-head { font-weight:700; font-size:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+  .chat-x { background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; line-height:1; padding:0; }
+  .chat-log { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px; min-height:80px; }
+  .chat-bubble { padding:8px 12px; border-radius:8px; font-size:13px; max-width:85%; word-break:break-word; }
+  .chat-admin { background:#4f46e5; color:#fff; align-self:flex-start; }
+  .chat-me { background:#2d3748; color:#e2e8f0; align-self:flex-end; }
+  .chat-meta { font-size:10px; opacity:0.6; margin-top:2px; }
+  .chat-row { display:flex; gap:8px; }
+  .chat-in { flex:1; background:#0f1117; border:1px solid #2d3748; border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; }
+  .chat-in:focus { outline:none; border-color:#6366f1; }
+  .chat-go { background:#6366f1; color:#fff; border:none; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; }
+  .reply-btn { font-size:9px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; border-radius:4px; padding:2px 5px; cursor:pointer; margin-top:3px; display:inline-block; }
 </style>
 </head>
 <body>
@@ -92,8 +107,23 @@
   </div>
 </div>
 
+<!-- Chat modal -->
+<div class="chat-overlay" id="chat-overlay">
+  <div class="chat-box">
+    <div class="chat-head">
+      <span id="chat-title">Flag Chat</span>
+      <button class="chat-x" onclick="closeChat()">&#x2715;</button>
+    </div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-row">
+      <input class="chat-in" id="chat-in" placeholder="Reply to admin..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-go" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const DATA = {"board":{"id":"board-1773179721236-i2gb","name":"Road to 25 — March 2026","startDate":"03/10/2026","squares":[{"position":0,"label":"Outside self-generated quote closed","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the self-gen close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":1,"label":"Bundle sale auto + property","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the bundle sale","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_all":["auto","home"]}}},{"position":2,"label":"Get a referral name & number on a call","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Referral name and who referred them","verifyMethod":"ai_verify"}},{"position":3,"label":"2 one-call closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"one_call_closes","filter":{},"aggregate":"max_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":4,"label":"Close back-to-back calls in a row","type":"auto","criteria":{"source":"scores","field":"outcome","filter":{"outcome_regex":"sale|sold|bound"},"aggregate":"consecutive_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":5,"label":"Multi-vehicle policy 3+ cars","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the 3+ vehicle policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_items":3,"policies_regex":"auto"}}},{"position":6,"label":"Get a 5-star Google review from a new customer","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who left the review","verifyMethod":"admin"}},{"position":7,"label":"First sale of the day before 10 AM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the early sale","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"sale|sold|bound","time_before":"10:00"}}},{"position":8,"label":"Write a renters policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the renters policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"renter"}}},{"position":9,"label":"Close a lead the same day it came in","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the same-day close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":10,"label":"Hit your daily item goal before 3 PM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Date you hit goal before 3 PM","verifyMethod":"ai_verify"}},{"position":11,"label":"Close a quote in under 20 minutes","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the quick close","verifyMethod":"ai_verify"}},{"position":12,"label":"FREE SPACE","type":"free"},{"position":13,"label":"Add an umbrella policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the umbrella policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"umbrella"}}},{"position":14,"label":"Book & close a quote from a callback","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the callback close","verifyMethod":"ai_verify"}},{"position":15,"label":"Get a customer to increase their coverage limits","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who increased limits","verifyMethod":"ai_verify"}},{"position":16,"label":"Close an outbound-dialed quote","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"outbound"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":17,"label":"Close 1st transfer of the day","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"transfer"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":18,"label":"Self-generated referral quote","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the referral quote","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"quote|sale|sold|bound"}}},{"position":19,"label":"Sell to someone who wasn't the original lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name (the non-original lead you sold to)","verifyMethod":"ai_verify"}},{"position":20,"label":"Close a policy over $200/mo premium","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the $200+ policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_premium":200}}},{"position":21,"label":"Hit 100% of daily goal","type":"auto","criteria":{"source":"perf_report","field":"goal_pct","filter":{"min_goal_pct":100},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":22,"label":"Re-quote and close a lost lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the re-quoted lead","verifyMethod":"ai_verify"}},{"position":23,"label":"Score 21+ on an evaluation","type":"auto","criteria":{"source":"scores","field":"total","filter":{"min_total":21},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":24,"label":"Get 3+ closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"closes","filter":{},"aggregate":"max_per_day","operator":">=","value":3,"window":{"type":"all_time"}}}],"winner":null},"agents":[{"name":"Hailey Walker","marked":{"4":{"status":"verified","note":null,"adminMessage":null},"8":{"status":"verified","note":"Sarah Johnson renters policy","adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"15":{"status":"verified","note":"Cynthia Anderson","adminMessage":null},"17":{"status":"verified","note":null,"adminMessage":null},"24":{"status":"verified","note":null,"adminMessage":null}},"total":6,"bingo":null,"closest":3},{"name":"Alez Felix","marked":{"4":{"status":"verified","note":null,"adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"15":{"status":"verified","note":"Cynthia Anderson","adminMessage":null},"17":{"status":"flagged","note":null,"adminMessage":null},"24":{"status":"flagged","note":null,"adminMessage":null}},"total":3,"bingo":null,"closest":2},{"name":"Jonathan Sanchez","marked":{"12":{"status":"free","note":null,"adminMessage":null},"17":{"status":"auto","note":null,"adminMessage":null}},"total":2,"bingo":null,"closest":2}],"generatedAt":"2026-03-13T04:16:30.424Z"};
+const DATA = {"board":{"id":"board-1773179721236-i2gb","name":"Road to 25 — March 2026","startDate":"03/10/2026","squares":[{"position":0,"label":"Outside self-generated quote closed","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the self-gen close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":1,"label":"Bundle sale auto + property","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the bundle sale","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_all":["auto","home"]}}},{"position":2,"label":"Get a referral name & number on a call","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Referral name and who referred them","verifyMethod":"ai_verify"}},{"position":3,"label":"2 one-call closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"one_call_closes","filter":{},"aggregate":"max_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":4,"label":"Close back-to-back calls in a row","type":"auto","criteria":{"source":"scores","field":"outcome","filter":{"outcome_regex":"sale|sold|bound"},"aggregate":"consecutive_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":5,"label":"Multi-vehicle policy 3+ cars","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the 3+ vehicle policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_items":3,"policies_regex":"auto"}}},{"position":6,"label":"Get a 5-star Google review from a new customer","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who left the review","verifyMethod":"admin"}},{"position":7,"label":"First sale of the day before 10 AM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the early sale","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"sale|sold|bound","time_before":"10:00"}}},{"position":8,"label":"Write a renters policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the renters policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"renter"}}},{"position":9,"label":"Close a lead the same day it came in","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the same-day close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":10,"label":"Hit your daily item goal before 3 PM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Date you hit goal before 3 PM","verifyMethod":"ai_verify"}},{"position":11,"label":"Close a quote in under 20 minutes","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the quick close","verifyMethod":"ai_verify"}},{"position":12,"label":"FREE SPACE","type":"free"},{"position":13,"label":"Add an umbrella policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the umbrella policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"umbrella"}}},{"position":14,"label":"Book & close a quote from a callback","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the callback close","verifyMethod":"ai_verify"}},{"position":15,"label":"Get a customer to increase their coverage limits","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who increased limits","verifyMethod":"ai_verify"}},{"position":16,"label":"Close an outbound-dialed quote","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"outbound"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":17,"label":"Close 1st transfer of the day","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"transfer"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":18,"label":"Self-generated referral quote","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the referral quote","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"quote|sale|sold|bound"}}},{"position":19,"label":"Sell to someone who wasn't the original lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name (the non-original lead you sold to)","verifyMethod":"ai_verify"}},{"position":20,"label":"Close a policy over $200/mo premium","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the $200+ policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_premium":200}}},{"position":21,"label":"Hit 100% of daily goal","type":"auto","criteria":{"source":"perf_report","field":"goal_pct","filter":{"min_goal_pct":100},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":22,"label":"Re-quote and close a lost lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the re-quoted lead","verifyMethod":"ai_verify"}},{"position":23,"label":"Score 21+ on an evaluation","type":"auto","criteria":{"source":"scores","field":"total","filter":{"min_total":21},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":24,"label":"Get 3+ closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"closes","filter":{},"aggregate":"max_per_day","operator":">=","value":3,"window":{"type":"all_time"}}}],"winner":null},"agents":[{"name":"Hailey Walker","marked":{"4":{"status":"verified","note":null,"adminMessage":null},"8":{"status":"verified","note":"Sarah Johnson renters policy","adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"15":{"status":"verified","note":"Cynthia Anderson","adminMessage":null},"17":{"status":"verified","note":null,"adminMessage":null},"24":{"status":"verified","note":null,"adminMessage":null}},"total":6,"bingo":null,"closest":3},{"name":"Alez Felix","marked":{"4":{"status":"verified","note":null,"adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"15":{"status":"verified","note":"Cynthia Anderson","adminMessage":null},"17":{"status":"flagged","note":null,"adminMessage":null},"24":{"status":"flagged","note":null,"adminMessage":null}},"total":3,"bingo":null,"closest":2},{"name":"Jonathan Sanchez","marked":{"12":{"status":"free","note":null,"adminMessage":null},"17":{"status":"auto","note":null,"adminMessage":null}},"total":2,"bingo":null,"closest":2}],"generatedAt":"2026-03-13T04:26:42.551Z"};
 const SERVER = 'https://app.carsoncustom.com';
 const META = {
   0:{e:'\u{1F3AF}',d:'hard'},1:{e:'\u{1F3E0}',d:'medium'},2:{e:'\u{1F4C7}',d:'easy'},
@@ -147,6 +177,20 @@ async function checkServer() {
     const r = await fetch(SERVER + '/teams/bingo/board?agent=' + encodeURIComponent(currentAgent || ''), { signal: c.signal });
     clearTimeout(t);
     serverOnline = r.ok;
+    if (r.ok) {
+      const liveData = await r.json();
+      if (liveData.board?.myState?.marked) {
+        const marked = liveData.board.myState.marked;
+        const total = Object.values(marked).filter(m => ['verified','auto','free'].includes(m.status)).length;
+        const bingo = liveData.board.bingo || null;
+        const idx = DATA.agents.findIndex(a => a.name === currentAgent);
+        if (idx >= 0) {
+          DATA.agents[idx] = { ...DATA.agents[idx], marked, total, bingo };
+        } else if (currentAgent) {
+          DATA.agents.push({ name: currentAgent, marked, total, bingo, closest: null });
+        }
+      }
+    }
   } catch { serverOnline = false; }
   render();
 }
@@ -232,6 +276,57 @@ function toast(msg, type) {
   setTimeout(() => el.remove(), 3000);
 }
 
+// ── Chat ──────────────────────────────────────────
+let chatState = null;
+
+async function openChat(pos) {
+  chatState = { pos, boardId: DATA.board.id, agent: currentAgent };
+  const sq = DATA.board.squares.find(s => s.position === pos);
+  document.getElementById('chat-title').textContent = '\u{1F4AC} ' + (sq?.label || 'Square ' + pos);
+  document.getElementById('chat-overlay').classList.add('active');
+  await refreshChat();
+  setTimeout(() => document.getElementById('chat-in').focus(), 100);
+}
+
+function closeChat() {
+  document.getElementById('chat-overlay').classList.remove('active');
+  chatState = null;
+}
+
+async function refreshChat() {
+  const log = document.getElementById('chat-log');
+  log.innerHTML = '<span style="color:#64748b;font-size:12px;">Loading...</span>';
+  try {
+    const { pos, boardId, agent } = chatState;
+    const r = await fetch(SERVER + '/teams/bingo/chat?boardId=' + encodeURIComponent(boardId) + '&agent=' + encodeURIComponent(agent) + '&position=' + pos);
+    const data = await r.json();
+    if (!data.messages?.length) { log.innerHTML = '<span style="color:#64748b;font-size:12px;">No messages yet.</span>'; return; }
+    log.innerHTML = data.messages.map(m => {
+      const isAdmin = m.sender === 'Admin';
+      const time = new Date(m.sent_at).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+      return '<div class="chat-bubble ' + (isAdmin ? 'chat-admin' : 'chat-me') + '">' + esc(m.message) +
+        '<div class="chat-meta">' + (isAdmin ? 'Admin' : esc(m.sender)) + ' \u00b7 ' + time + '</div></div>';
+    }).join('');
+    log.scrollTop = log.scrollHeight;
+  } catch { log.innerHTML = '<span style="color:#ef4444;font-size:12px;">Could not load messages.</span>'; }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-in');
+  const msg = input.value.trim();
+  if (!msg) return;
+  if (!serverOnline) { toast('Server offline \u2014 cannot send', 'err'); return; }
+  input.value = '';
+  const { pos, boardId, agent } = chatState;
+  try {
+    await fetch(SERVER + '/teams/bingo/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ boardId, agent, position: pos, message: msg }),
+    });
+    await refreshChat();
+  } catch { toast('Failed to send', 'err'); }
+}
+
 // ── Render ────────────────────────────────────────
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
@@ -299,8 +394,11 @@ function render() {
     const flagMsg = (status === 'flagged' && markData?.adminMessage)
       ? '<span class="cell-flag-msg">\u{1F4AC} ' + esc(markData.adminMessage.length > 35 ? markData.adminMessage.substring(0,35)+'\u2026' : markData.adminMessage) + '</span>'
       : '';
+    const replyBtn = (status === 'flagged')
+      ? '<button class="reply-btn" onclick="event.stopPropagation();openChat(' + i + ')">\u{1F4AC} Reply</button>'
+      : '';
     const cellTitle = (status === 'flagged' && markData?.adminMessage) ? 'Flagged: ' + markData.adminMessage : esc(sq?.label||'');
-    h += '<div class="' + cls + '"' + click + ' title="' + cellTitle + '">' + icon + dot + '<span class="cell-emoji">' + m.e + '</span><span class="cell-label">' + esc(sq?.label||'') + '</span>' + flagMsg + '</div>';
+    h += '<div class="' + cls + '"' + click + ' title="' + cellTitle + '">' + icon + dot + '<span class="cell-emoji">' + m.e + '</span><span class="cell-label">' + esc(sq?.label||'') + '</span>' + flagMsg + replyBtn + '</div>';
   }
   h += '</div>';
 
@@ -328,7 +426,7 @@ function render() {
       '<span class="lb-score">' + a.total + '/25</span></div>';
   });
   h += '</div>';
-  h += '<div class="updated">Last updated: Mar 12, 9:16 PM</div>';
+  h += '<div class="updated">Last updated: Mar 12, 9:26 PM</div>';
 
   document.getElementById('app').innerHTML = h;
   if (hasBingo && !document.getElementById('confetti')) launchConfetti();
