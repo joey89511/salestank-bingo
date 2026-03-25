@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Road to 25 — SalesTank Bingo</title>
-<script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
@@ -27,7 +26,6 @@
   .cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #2d3748; border-radius: 10px; padding: 6px 5px; text-align: center; background: #1a1d2e; position: relative; transition: all 0.2s; }
   .cell-emoji { font-size: 20px; line-height: 1; margin-bottom: 3px; }
   .cell-label { font-size: 9px; line-height: 1.2; color: #cbd5e1; word-break: break-word; max-height: 3em; overflow: hidden; }
-  .cell-note { display: block; font-size: 8px; line-height: 1.2; color: #94a3b8; margin-top: 2px; word-break: break-word; max-height: 2.4em; overflow: hidden; text-overflow: ellipsis; }
   .diff-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
   .status-icon { position: absolute; top: 3px; left: 4px; font-size: 11px; font-weight: 700; }
   .cell-open { border-color: rgba(99,102,241,0.3); cursor: pointer; }
@@ -40,7 +38,6 @@
   .cell-queued .status-icon { color: #f97316; }
   .cell-flagged { border-color: #ef4444; background: rgba(239,68,68,0.08); }
   .cell-flagged .status-icon { color: #ef4444; }
-  .cell-flag-msg { display: block; font-size: 8px; font-style: italic; color: #ef4444; margin-top: 2px; line-height: 1.2; word-break: break-word; }
   .cell-free { border-color: #a78bfa; background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.12)); }
   .cell-free .cell-label { font-weight: 700; color: #a78bfa; }
   .cell-free .status-icon { color: #a78bfa; }
@@ -61,16 +58,6 @@
   .lb-bingo { color: #22c55e; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
   .updated { text-align: center; font-size: 11px; color: #475569; margin-top: 16px; }
   #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-  .mini-boards { margin-top: 20px; }
-  .mini-boards-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; padding: 0 4px; }
-  .mini-agent { margin-bottom: 16px; }
-  .mini-agent-name { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; padding: 0 2px; }
-  .mini-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-  .mini-cell { aspect-ratio: 1; border-radius: 6px; border: 1.5px solid #2d3748; background: #1a1d2e; display: flex; align-items: center; justify-content: center; font-size: 13px; }
-  .mini-verified { border-color: #22c55e; background: rgba(34,197,94,0.12); }
-  .mini-pending { border-color: #eab308; background: rgba(234,179,8,0.08); }
-  .mini-flagged { border-color: #ef4444; background: rgba(239,68,68,0.08); }
-  .mini-free { border-color: #a78bfa; background: rgba(139,92,246,0.1); }
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; align-items:center; justify-content:center; }
   .modal-overlay.active { display:flex; }
   .modal-box { background:#1a1d2e; border:1px solid #2d3748; border-radius:14px; padding:24px; width:90%; max-width:380px; }
@@ -88,21 +75,6 @@
   .toast-err { background:#ef4444; color:#fff; }
   .toast-info { background:#6366f1; color:#fff; }
   @keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 15%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }
-  .chat-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:400; align-items:flex-end; justify-content:center; }
-  .chat-overlay.active { display:flex; }
-  .chat-box { background:#1a1d2e; border:1px solid #2d3748; border-radius:14px 14px 0 0; padding:16px; width:100%; max-width:480px; max-height:70vh; display:flex; flex-direction:column; }
-  .chat-head { font-weight:700; font-size:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-  .chat-x { background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; line-height:1; padding:0; }
-  .chat-log { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px; min-height:80px; }
-  .chat-bubble { padding:8px 12px; border-radius:8px; font-size:13px; max-width:85%; word-break:break-word; }
-  .chat-admin { background:#4f46e5; color:#fff; align-self:flex-start; }
-  .chat-me { background:#2d3748; color:#e2e8f0; align-self:flex-end; }
-  .chat-meta { font-size:10px; opacity:0.6; margin-top:2px; }
-  .chat-row { display:flex; gap:8px; }
-  .chat-in { flex:1; background:#0f1117; border:1px solid #2d3748; border-radius:8px; padding:8px 12px; color:#e2e8f0; font-size:13px; font-family:inherit; }
-  .chat-in:focus { outline:none; border-color:#6366f1; }
-  .chat-go { background:#6366f1; color:#fff; border:none; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; }
-  .reply-btn { font-size:9px; background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; border-radius:4px; padding:2px 5px; cursor:pointer; margin-top:3px; display:inline-block; }
 </style>
 </head>
 <body>
@@ -119,23 +91,8 @@
   </div>
 </div>
 
-<!-- Chat modal -->
-<div class="chat-overlay" id="chat-overlay">
-  <div class="chat-box">
-    <div class="chat-head">
-      <span id="chat-title">Flag Chat</span>
-      <button class="chat-x" onclick="closeChat()">&#x2715;</button>
-    </div>
-    <div class="chat-log" id="chat-log"></div>
-    <div class="chat-row">
-      <input class="chat-in" id="chat-in" placeholder="Reply to admin..." onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="chat-go" onclick="sendChat()">Send</button>
-    </div>
-  </div>
-</div>
-
 <script>
-const DATA = {"board":{"id":"board-1773179721236-i2gb","name":"Road to 25 — March 2026","startDate":"03/10/2026","squares":[{"position":0,"label":"Outside self-generated quote closed","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the self-gen close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":1,"label":"Bundle sale auto + property","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the bundle sale","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_all":["auto","home"]}}},{"position":2,"label":"Get a referral name & number on a call","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Referral name and who referred them","verifyMethod":"ai_verify"}},{"position":3,"label":"2 one-call closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"one_call_closes","filter":{},"aggregate":"max_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":4,"label":"Close back-to-back calls in a row","type":"auto","criteria":{"source":"scores","field":"outcome","filter":{"outcome_regex":"sale|sold|bound"},"aggregate":"consecutive_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":5,"label":"Multi-vehicle policy 3+ cars","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the 3+ vehicle policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_items":3,"policies_regex":"auto"}}},{"position":6,"label":"Get a 5-star Google review from a new customer","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who left the review","verifyMethod":"admin"}},{"position":7,"label":"First sale of the day before 10 AM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the early sale","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"sale|sold|bound","time_before":"10:00"}}},{"position":8,"label":"Write a renters policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the renters policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"renter"}}},{"position":9,"label":"Close a lead the same day it came in","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the same-day close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":10,"label":"Hit your daily item goal before 3 PM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Date you hit goal before 3 PM","verifyMethod":"ai_verify"}},{"position":11,"label":"Close a quote in under 20 minutes","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the quick close","verifyMethod":"ai_verify"}},{"position":12,"label":"FREE SPACE","type":"free"},{"position":13,"label":"Add an umbrella policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the umbrella policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"umbrella"}}},{"position":14,"label":"Book & close a quote from a callback","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the callback close","verifyMethod":"ai_verify"}},{"position":15,"label":"Get a customer to increase their coverage limits","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who increased limits","verifyMethod":"ai_verify"}},{"position":16,"label":"Close an outbound-dialed quote","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"outbound"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":17,"label":"Close 1st transfer of the day","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"transfer"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":18,"label":"Self-generated referral quote","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the referral quote","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"quote|sale|sold|bound"}}},{"position":19,"label":"Sell to someone who wasn't the original lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name (the non-original lead you sold to)","verifyMethod":"ai_verify"}},{"position":20,"label":"Close a policy over $200/mo premium","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the $200+ policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_premium":200}}},{"position":21,"label":"Hit 100% of daily goal","type":"auto","criteria":{"source":"perf_report","field":"goal_pct","filter":{"min_goal_pct":100},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":22,"label":"Re-quote and close a lost lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the re-quoted lead","verifyMethod":"ai_verify"}},{"position":23,"label":"Score 21+ on an evaluation","type":"auto","criteria":{"source":"scores","field":"total","filter":{"min_total":21},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":24,"label":"Get 3+ closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"closes","filter":{},"aggregate":"max_per_day","operator":">=","value":3,"window":{"type":"all_time"}}}],"winner":null},"agents":[{"name":"Hailey Walker","marked":{"1":{"status":"pending","note":"Starlet flint","adminMessage":null},"4":{"status":"verified","note":null,"adminMessage":null},"5":{"status":"flagged","note":"walter rojas","adminMessage":null},"7":{"status":"verified","note":"Russell Frioli","adminMessage":null},"8":{"status":"verified","note":"Sarah Johnson renters policy","adminMessage":null},"9":{"status":"flagged","note":"Erin Williams","adminMessage":null},"10":{"status":"pending","note":"3/23","adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"17":{"status":"verified","note":null,"adminMessage":null},"20":{"status":"verified","note":"Cynthia Werwie","adminMessage":null},"21":{"status":"flagged","note":null,"adminMessage":null},"22":{"status":"flagged","note":"Gabriel estrada","adminMessage":null},"24":{"status":"auto","note":null,"adminMessage":null}},"total":7,"bingo":null,"closest":4},{"name":"Alez Felix","marked":{"4":{"status":"verified","note":null,"adminMessage":null},"12":{"status":"free","note":null,"adminMessage":null},"15":{"status":"verified","note":"Cynthia Anderson","adminMessage":null},"17":{"status":"verified","note":null,"adminMessage":null},"24":{"status":"flagged","note":null,"adminMessage":null}},"total":4,"bingo":null,"closest":2},{"name":"Jonathan Sanchez","marked":{"12":{"status":"free","note":null,"adminMessage":null},"17":{"status":"auto","note":null,"adminMessage":null}},"total":2,"bingo":null,"closest":2},{"name":"Joey Robertson","marked":{"12":{"status":"free","note":null,"adminMessage":null}},"total":1,"bingo":null,"closest":1}],"generatedAt":"2026-03-24T15:31:08.251Z"};
+const DATA = {"board":{"id":"board-1773179721236-i2gb","name":"Road to 25 — March 2026","startDate":"03/10/2026","squares":[{"position":0,"label":"Outside self-generated quote closed","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the self-gen close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":1,"label":"Bundle sale auto + property","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the bundle sale","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_all":["auto","home"]}}},{"position":2,"label":"Get a referral name & number on a call","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Referral name and who referred them","verifyMethod":"ai_verify"}},{"position":3,"label":"2 one-call closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"one_call_closes","filter":{},"aggregate":"max_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":4,"label":"Close back-to-back calls in a row","type":"auto","criteria":{"source":"scores","field":"outcome","filter":{"outcome_regex":"sale|sold|bound"},"aggregate":"consecutive_per_day","operator":">=","value":2,"window":{"type":"all_time"}}},{"position":5,"label":"Multi-vehicle policy 3+ cars","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the 3+ vehicle policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_items":3,"policies_regex":"auto"}}},{"position":6,"label":"Get a 5-star Google review from a new customer","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who left the review","verifyMethod":"admin"}},{"position":7,"label":"First sale of the day before 10 AM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the early sale","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"sale|sold|bound","time_before":"10:00"}}},{"position":8,"label":"Write a renters policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the renters policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"renter"}}},{"position":9,"label":"Close a lead the same day it came in","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the same-day close","verifyMethod":"customer_match","matchSources":["scores","az_sales"],"matchFilter":{"outcome_regex":"sale|sold|bound"}}},{"position":10,"label":"Hit your daily item goal before 3 PM","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Date you hit goal before 3 PM","verifyMethod":"ai_verify"}},{"position":11,"label":"Close a quote in under 20 minutes","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the quick close","verifyMethod":"ai_verify"}},{"position":12,"label":"FREE SPACE","type":"free"},{"position":13,"label":"Add an umbrella policy","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the umbrella policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"policies_regex":"umbrella"}}},{"position":14,"label":"Book & close a quote from a callback","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the callback close","verifyMethod":"ai_verify"}},{"position":15,"label":"Get a customer to increase their coverage limits","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name who increased limits","verifyMethod":"ai_verify"}},{"position":16,"label":"Close an outbound-dialed quote","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"outbound"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":17,"label":"Close 1st transfer of the day","type":"auto","criteria":{"source":"scores","field":"total","filter":{"outcome_regex":"sale|sold|bound","callType":"transfer"},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":18,"label":"Self-generated referral quote","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the referral quote","verifyMethod":"customer_match","matchSources":["scores"],"matchFilter":{"outcome_regex":"quote|sale|sold|bound"}}},{"position":19,"label":"Sell to someone who wasn't the original lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name (the non-original lead you sold to)","verifyMethod":"ai_verify"}},{"position":20,"label":"Close a policy over $200/mo premium","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the $200+ policy","verifyMethod":"customer_match","matchSources":["az_sales"],"matchFilter":{"min_premium":200}}},{"position":21,"label":"Hit 100% of daily goal","type":"auto","criteria":{"source":"perf_report","field":"goal_pct","filter":{"min_goal_pct":100},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":22,"label":"Re-quote and close a lost lead","type":"claim","claim":{"requiresNote":true,"notePlaceholder":"Customer name for the re-quoted lead","verifyMethod":"ai_verify"}},{"position":23,"label":"Score 21+ on an evaluation","type":"auto","criteria":{"source":"scores","field":"total","filter":{"min_total":21},"aggregate":"count","operator":">=","value":1,"window":{"type":"all_time"}}},{"position":24,"label":"Get 3+ closes in a single day","type":"auto","criteria":{"source":"perf_report","field":"closes","filter":{},"aggregate":"max_per_day","operator":">=","value":3,"window":{"type":"all_time"}}}],"winner":null},"agents":[{"name":"Hailey Walker","marked":{"1":{"status":"pending","note":"Starlet flint"},"3":{"status":"pending","note":null},"4":{"status":"verified","note":null},"5":{"status":"flagged","note":"walter rojas"},"7":{"status":"verified","note":"Russell Frioli"},"8":{"status":"verified","note":"Sarah Johnson renters policy"},"9":{"status":"flagged","note":"Erin Williams"},"10":{"status":"pending","note":"3/23"},"12":{"status":"free","note":null},"17":{"status":"verified","note":null},"20":{"status":"verified","note":"Cynthia Werwie"},"21":{"status":"flagged","note":null},"22":{"status":"flagged","note":"Gabriel estrada"},"24":{"status":"auto","note":null}},"total":7,"bingo":null,"closest":4},{"name":"Alez Felix","marked":{"4":{"status":"verified","note":null},"12":{"status":"free","note":null},"15":{"status":"verified","note":"Cynthia Anderson"},"17":{"status":"verified","note":null},"24":{"status":"flagged","note":null}},"total":4,"bingo":null,"closest":2},{"name":"Jonathan Sanchez","marked":{"12":{"status":"free","note":null},"17":{"status":"auto","note":null}},"total":2,"bingo":null,"closest":2},{"name":"Joey Robertson","marked":{"12":{"status":"free","note":null}},"total":1,"bingo":null,"closest":1}],"generatedAt":"2026-03-25T20:23:44.536Z"};
 const SERVER = 'https://app.carsoncustom.com';
 const META = {
   0:{e:'\u{1F3AF}',d:'hard'},1:{e:'\u{1F3E0}',d:'medium'},2:{e:'\u{1F4C7}',d:'easy'},
@@ -189,20 +146,6 @@ async function checkServer() {
     const r = await fetch(SERVER + '/teams/bingo/board?agent=' + encodeURIComponent(currentAgent || ''), { signal: c.signal });
     clearTimeout(t);
     serverOnline = r.ok;
-    if (r.ok) {
-      const liveData = await r.json();
-      if (liveData.board?.myState?.marked) {
-        const marked = liveData.board.myState.marked;
-        const total = Object.values(marked).filter(m => ['verified','auto','free'].includes(m.status)).length;
-        const bingo = liveData.board.bingo || null;
-        const idx = DATA.agents.findIndex(a => a.name === currentAgent);
-        if (idx >= 0) {
-          DATA.agents[idx] = { ...DATA.agents[idx], marked, total, bingo };
-        } else if (currentAgent) {
-          DATA.agents.push({ name: currentAgent, marked, total, bingo, closest: null });
-        }
-      }
-    }
   } catch { serverOnline = false; }
   render();
 }
@@ -288,57 +231,6 @@ function toast(msg, type) {
   setTimeout(() => el.remove(), 3000);
 }
 
-// ── Chat ──────────────────────────────────────────
-let chatState = null;
-
-async function openChat(pos) {
-  chatState = { pos, boardId: DATA.board.id, agent: currentAgent };
-  const sq = DATA.board.squares.find(s => s.position === pos);
-  document.getElementById('chat-title').textContent = '\u{1F4AC} ' + (sq?.label || 'Square ' + pos);
-  document.getElementById('chat-overlay').classList.add('active');
-  await refreshChat();
-  setTimeout(() => document.getElementById('chat-in').focus(), 100);
-}
-
-function closeChat() {
-  document.getElementById('chat-overlay').classList.remove('active');
-  chatState = null;
-}
-
-async function refreshChat() {
-  const log = document.getElementById('chat-log');
-  log.innerHTML = '<span style="color:#64748b;font-size:12px;">Loading...</span>';
-  try {
-    const { pos, boardId, agent } = chatState;
-    const r = await fetch(SERVER + '/teams/bingo/chat?boardId=' + encodeURIComponent(boardId) + '&agent=' + encodeURIComponent(agent) + '&position=' + pos);
-    const data = await r.json();
-    if (!data.messages?.length) { log.innerHTML = '<span style="color:#64748b;font-size:12px;">No messages yet.</span>'; return; }
-    log.innerHTML = data.messages.map(m => {
-      const isAdmin = m.sender === 'Admin';
-      const time = new Date(m.sent_at).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-      return '<div class="chat-bubble ' + (isAdmin ? 'chat-admin' : 'chat-me') + '">' + esc(m.message) +
-        '<div class="chat-meta">' + (isAdmin ? 'Admin' : esc(m.sender)) + ' \u00b7 ' + time + '</div></div>';
-    }).join('');
-    log.scrollTop = log.scrollHeight;
-  } catch { log.innerHTML = '<span style="color:#ef4444;font-size:12px;">Could not load messages.</span>'; }
-}
-
-async function sendChat() {
-  const input = document.getElementById('chat-in');
-  const msg = input.value.trim();
-  if (!msg) return;
-  if (!serverOnline) { toast('Server offline \u2014 cannot send', 'err'); return; }
-  input.value = '';
-  const { pos, boardId, agent } = chatState;
-  try {
-    await fetch(SERVER + '/teams/bingo/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ boardId, agent, position: pos, message: msg }),
-    });
-    await refreshChat();
-  } catch { toast('Failed to send', 'err'); }
-}
-
 // ── Render ────────────────────────────────────────
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
@@ -398,17 +290,11 @@ function render() {
     else if (status === 'verified' || status === 'auto') { cls += ' cell-verified'; icon = '<span class="status-icon">\u{2713}</span>'; }
     else if (status === 'pending') { cls += ' cell-pending'; icon = '<span class="status-icon">\u{23F3}</span>'; }
     else if (queued) { cls += ' cell-queued'; icon = '<span class="status-icon">\u{1F4E4}</span>'; }
-    else if (status === 'flagged') { cls += ' cell-flagged'; icon = '<span class="status-icon">\u{26A0}</span>'; click = ' onclick="openChat(' + i + ')" style="cursor:pointer;"'; }
+    else if (status === 'flagged') { cls += ' cell-flagged'; icon = '<span class="status-icon">\u{26A0}</span>'; }
     else { cls += ' cell-open'; click = ' onclick="clickCell(' + i + ')"'; }
     if (isOnLine) cls += ' cell-line';
     const dot = !isFree ? '<span class="diff-dot" style="background:' + (DCOL[m.d]||DCOL.easy) + '"></span>' : '';
-    const markData = marked[String(i)];
-    const flagMsg = (status === 'flagged')
-      ? '<span class="cell-flag-msg">\u{1F4AC} ' + (markData?.adminMessage ? 'New message' : 'Tap to reply') + '</span>'
-      : '';
-    const cellTitle = (status === 'flagged' && markData?.adminMessage) ? 'Flagged: ' + markData.adminMessage : esc(sq?.label||'');
-    const noteHtml = (!isFree && markData?.note && status) ? '<span class="cell-note" title="' + esc(markData.note) + '">' + esc(markData.note) + '</span>' : '';
-    h += '<div class="' + cls + '"' + click + ' title="' + cellTitle + '">' + icon + dot + '<span class="cell-emoji">' + m.e + '</span><span class="cell-label">' + esc(sq?.label||'') + '</span>' + noteHtml + flagMsg + '</div>';
+    h += '<div class="' + cls + '"' + click + ' title="' + esc(sq?.label||'') + '">' + icon + dot + '<span class="cell-emoji">' + m.e + '</span><span class="cell-label">' + esc(sq?.label||'') + '</span></div>';
   }
   h += '</div>';
 
@@ -436,38 +322,7 @@ function render() {
       '<span class="lb-score">' + a.total + '/25</span></div>';
   });
   h += '</div>';
-
-  // ── Teammate boards ─────────────────────────────────────────
-  const others = DATA.agents.filter(a => a.name !== currentAgent);
-  if (others.length && board.squares) {
-    h += '<div class="mini-boards"><div class="mini-boards-title">Teammates&#39; Boards</div>';
-    for (const a of others) {
-      const abingo = a.bingo;
-      h += '<div class="mini-agent"><div class="mini-agent-name">' + esc(a.name) +
-        (abingo ? ' <span class="lb-bingo">BINGO!</span>' : '') +
-        ' <span style="font-size:11px;color:#6366f1;font-weight:400;">' + a.total + '/25</span></div>' +
-        '<div class="mini-grid">';
-      for (let i = 0; i < 25; i++) {
-        const sq = board.squares.find(s => s.position === i);
-        const m = META[i] || {e:'',d:'easy'};
-        const mark = a.marked?.[String(i)];
-        const status = mark?.status || null;
-        const isFree = sq?.type === 'free';
-        let mcls = 'mini-cell';
-        if (isFree || status === 'free') mcls += ' mini-free';
-        else if (status === 'verified' || status === 'auto') mcls += ' mini-verified';
-        else if (status === 'pending') mcls += ' mini-pending';
-        else if (status === 'flagged') mcls += ' mini-flagged';
-        if (abingo && Array.isArray(abingo) && abingo.includes(i)) mcls += ' cell-line';
-        h += '<div class="' + mcls + '" title="' + esc(sq?.label||'') + '">' + m.e + '</div>';
-      }
-      h += '</div></div>';
-    }
-    h += '</div>';
-  }
-
-  h += '<div class="updated">Last updated: Mar 24, 8:31 AM</div>';
-  h += '<div style="text-align:center;margin-top:12px;"><a href="https://joey89511.github.io/road-to-25/" style="color:#475569;font-size:11px;text-decoration:none;">&#8592; Back to Road to 25</a></div>';
+  h += '<div class="updated">Last updated: Mar 25, 1:23 PM</div>';
 
   document.getElementById('app').innerHTML = h;
   if (hasBingo && !document.getElementById('confetti')) launchConfetti();
@@ -502,9 +357,6 @@ function launchConfetti() {
 }
 
 // ── Init ──────────────────────────────────────────
-if (typeof microsoftTeams !== 'undefined') {
-  microsoftTeams.app.initialize().catch(() => {});
-}
 checkServer();
 setInterval(() => { checkServer(); flushQueue(); }, 30000);
 render();
